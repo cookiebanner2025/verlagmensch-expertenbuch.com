@@ -1,63 +1,9 @@
-const EU_COUNTRIES = [
-  "AL", // Albania
-  "AD", // Andorra
-  "AM", // Armenia
-  "AT", // Austria
-  "AZ", // Azerbaijan
-  "BY", // Belarus
-  "BE", // Belgium
-  "BA", // Bosnia & Herzegovina
-  "BG", // Bulgaria
-  "HR", // Croatia
-  "CY", // Cyprus
-  "CZ", // Czech Republic
-  "DK", // Denmark
-  "EE", // Estonia
-  "FI", // Finland
-  "FR", // France
-  "GE", // Georgia
-  "DE", // Germany
-  "GR", // Greece
-  "HU", // Hungary
-  "IS", // Iceland
-  "IE", // Ireland
-  "IT", // Italy
-  "KZ", // Kazakhstan
-  "XK", // Kosovo
-  "LV", // Latvia
-  "LI", // Liechtenstein
-  "LT", // Lithuania
-  "LU", // Luxembourg
-  "MT", // Malta
-  "MD", // Moldova
-  "MC", // Monaco
-  "ME", // Montenegro
-  "NL", // Netherlands
-  "MK", // North Macedonia
-  "NO", // Norway
-  "PL", // Poland
-  "PT", // Portugal
-  "RO", // Romania
-  "RU", // Russia
-  "SM", // San Marino
-  "RS", // Serbia
-  "SK", // Slovakia
-  "SI", // Slovenia
-  "ES", // Spain
-  "SE", // Sweden
-  "CH", // Switzerland
-  "TR", // Turkey
-  "UA", // Ukraine
-  "GB", // United Kingdom
-  "VA", // Vatican City
-];
-
 const config = {
     // Domain restriction
     allowedDomains: [],
     
     // Privacy policy URL (configurable)
-    privacyPolicyUrl: 'https://verlagmensch-expertenbuch.com/#privacy-policy', // Add your full privacy policy URL here
+    privacyPolicyUrl: 'https://yourdomain.com/privacy-policy', // Add your full privacy policy URL here
     
     // Microsoft UET Configuration
     uetConfig: {
@@ -76,7 +22,7 @@ const config = {
         acceptOnScroll: false,
         acceptOnContinue: false,
         showFloatingButton: true,
-        showAdminButton: false,
+        showAdminButton: true,
         floatingButtonPosition: 'left',
         adminButtonPosition: 'left',
         bannerPosition: 'left',
@@ -121,17 +67,14 @@ const config = {
     },
     
     // Geo-targeting configuration
- // In your config object, update the geoConfig section:
-geoConfig: {
-    allowedCountries: [], // Only show in these countries (empty = all allowed)
-    allowedRegions: [], // Only show in these regions
-    allowedCities: [], // Only show in these cities
-    blockedCountries: [], // Never show in these countries
-    blockedRegions: [], // Never show in these regions
-    blockedCities: [], // Never show in these cities
-    euOnly: false, // NEW: Set to true to only show in EU countries
-    specificRegions: [] // NEW: Can specify 'EU' or other regions
-},
+    geoConfig: {
+        allowedCountries: [],
+        allowedRegions: [],
+        allowedCities: [],
+        blockedCountries: [],
+        blockedRegions: [],
+        blockedCities: []
+    },
     
     // Analytics configuration
     analytics: {
@@ -356,12 +299,6 @@ function gtag() { dataLayer.push(arguments); }
 window.uetq = window.uetq || [];
 
 // Set default consent (deny all except security)
-// ============== IMPLEMENTATION SECTION ============== //
-// Initialize dataLayer for Google Tag Manager
-window.dataLayer = window.dataLayer || [];
-function gtag() { dataLayer.push(arguments); }
-
-// Set default consent (deny all except security) AND initial GCS signal
 gtag('consent', 'default', {
     'ad_storage': 'denied',
     'analytics_storage': 'denied',
@@ -372,43 +309,23 @@ gtag('consent', 'default', {
     'security_storage': 'granted'
 });
 
-// Push initial GCS signal (G100) immediately after default consent
-window.dataLayer.push({
-    'event': 'initial_consent_state',
-    'consent_mode': {
-        'ad_storage': 'denied',
-        'analytics_storage': 'denied',
-        'ad_user_data': 'denied',
-        'ad_personalization': 'denied',
-        'personalization_storage': 'denied',
-        'functionality_storage': 'denied',
-        'security_storage': 'granted'
-    },
-    'gcs': 'G100', // Explicit initial GCS signal
-    'timestamp': new Date().toISOString()
-});
-
 // Set default UET consent
 function setDefaultUetConsent() {
     if (!config.uetConfig.enabled) return;
-    // Redundant safeguard
-    if (typeof window.uetq === 'undefined') window.uetq = [];
+     // Redundant safeguard
+  if (typeof window.uetq === 'undefined') window.uetq = [];  // <-- ADD THIS LINE
     const consentState = config.uetConfig.defaultConsent === 'granted' ? 'granted' : 'denied';
     
     window.uetq.push('consent', 'default', {
         'ad_storage': consentState
     });
     
-    // Push to dataLayer with GCS alignment
+    // Push to dataLayer
     window.dataLayer.push({
         'event': 'uet_consent_default',
         'consent_mode': {
-            'ad_storage': consentState,
-            'analytics_storage': 'denied', // Mirroring GCS initial state
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied'
+            'ad_storage': consentState
         },
-        'gcs': 'G100', // Aligned with initial GCS signal
         'timestamp': new Date().toISOString()
     });
 }
@@ -1367,39 +1284,55 @@ let bannerShown = false;
 
 // Location data storage
 // Location data storage with immediate initialization
-// Location data storage - start empty
-let locationData = {};
+let locationData = {
+    continent: 'Unknown',
+    country: 'Unknown',
+    city: 'Unknown',
+    zip: 'Unknown',
+    ip: 'Unknown',
+    street: 'Unknown',
+    region: 'Unknown',
+    timezone: 'Unknown',
+    isp: 'Unknown',
+    language: (navigator.language || "Unknown").split("-")[0]
+};
 
-// First try to load from session storage if available
+// Initialize dataLayer with location data immediately
+window.dataLayer = window.dataLayer || [];
+window.dataLayer.push({
+    'event': 'locationInitialized',
+    'location_data': locationData,
+    'timestamp': new Date().toISOString()
+});
+
+// Try to load from session storage if available
 const savedLocation = sessionStorage.getItem('locationData');
 if (savedLocation) {
     locationData = JSON.parse(savedLocation);
-} else {
-    // If no saved data, fetch fresh data
-    fetchLocationData().then(() => {
-        // Push to dataLayer after we have the data
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({
-            'event': 'locationInitialized',
-            'location_data': locationData,
-            'timestamp': new Date().toISOString()
-        });
+    window.dataLayer.push({
+        'event': 'locationLoadedFromCache',
+        'location_data': locationData,
+        'timestamp': new Date().toISOString()
     });
 }
+
 // Function to fetch location data
 async function fetchLocationData() {
-    // Skip if we already have valid location data (optional safety check)
-    if (locationData.country && locationData.country !== 'Unknown') {
-        return locationData;
+    // Skip if we already have valid location data
+    if (locationData.country !== 'Unknown' && locationData.country !== '') {
+        return;
     }
 
+    var apiKey = '4c1e5d00e0ac93'; // Your API key
+    
     try {
-        const response = await fetch('https://ipinfo.io/json?token=4c1e5d00e0ac93');
-        if (!response.ok) throw new Error('Failed to fetch location');
-        
+        const response = await fetch('https://ipinfo.io/json?token=' + apiKey);
+        if (!response.ok) {
+            throw new Error('Failed to fetch location data');
+        }
         const payload = await response.json();
-        
-        // Update locationData with actual values
+
+        // Update locationData
         locationData = {
             continent: getContinentFromCountry(payload.country) || "Unknown",
             country: payload.country || "Unknown",
@@ -1415,32 +1348,16 @@ async function fetchLocationData() {
 
         // Save to session storage
         sessionStorage.setItem('locationData', JSON.stringify(locationData));
-        
-        // Push to dataLayer - THIS IS WHERE IT HAPPENS NOW
+
+        // Push to dataLayer
         window.dataLayer.push({
             'event': 'locationRetrieved',
             'location_data': locationData,
             'timestamp': new Date().toISOString()
         });
-        
-        return locationData;
-        
+
     } catch (error) {
         console.error('Error fetching location:', error);
-        // Set defaults if API fails
-        locationData = {
-            continent: "Unknown",
-            country: "Unknown",
-            city: "Unknown",
-            zip: "Unknown",
-            ip: "Unknown",
-            street: "Unknown",
-            region: "Unknown",
-            timezone: "Unknown",
-            isp: "Unknown",
-            language: (navigator.language || "Unknown").split("-")[0]
-        };
-        return locationData;
     }
 }
 
@@ -1696,14 +1613,8 @@ function isDomainAllowed() {
 }
 
 // Check geo-targeting restrictions
-// Replace the existing checkGeoTargeting function with this:
 function checkGeoTargeting(geoData) {
-    // If we don't have country data, allow by default (or deny if you prefer)
-    if (!geoData || !geoData.country || geoData.country === 'Unknown') {
-        return !config.geoConfig.euOnly; // If EU-only mode, deny unknown locations
-    }
-
-    // Check blocked locations first (highest priority)
+    // Check blocked locations first
     if (config.geoConfig.blockedCountries.length > 0 && 
         config.geoConfig.blockedCountries.includes(geoData.country)) {
         return false;
@@ -1718,21 +1629,7 @@ function checkGeoTargeting(geoData) {
         config.geoConfig.blockedCities.includes(geoData.city)) {
         return false;
     }
-
-    // Handle EU-only mode
-    if (config.geoConfig.euOnly) {
-        return EU_COUNTRIES.includes(geoData.country);
-    }
-
-    // Check if specific regions are specified
-    if (config.geoConfig.specificRegions.length > 0) {
-       // if (config.geoConfig.specificRegions.includes('EU') && 
-          //  EU_COUNTRIES.includes(geoData.country)) {
-           // return true;
-     //   }
-        return config.geoConfig.specificRegions.includes(geoData.region);
-    }
-
+    
     // Check allowed locations (if any restrictions are set)
     if (config.geoConfig.allowedCountries.length > 0 && 
         !config.geoConfig.allowedCountries.includes(geoData.country)) {
@@ -1749,7 +1646,6 @@ function checkGeoTargeting(geoData) {
         return false;
     }
     
-    // If no restrictions, allow by default
     return true;
 }
 
@@ -3145,9 +3041,8 @@ function shouldShowBanner() {
 function initializeCookieConsent(detectedCookies, language) {
     const consentGiven = getCookie('cookie_consent');
     
-    // Check if banner should be shown based on geo-targeting and schedule
-    const geoAllowed = checkGeoTargeting(locationData);
-    const bannerShouldBeShown = geoAllowed && shouldShowBanner();
+    // Check if banner should be shown based on schedule
+    const bannerShouldBeShown = shouldShowBanner();
     
     if (!consentGiven && config.behavior.autoShow && bannerShouldBeShown) {
         setTimeout(() => {
@@ -3161,6 +3056,7 @@ function initializeCookieConsent(detectedCookies, language) {
             showFloatingButton();
         }
     }
+    
     // Explicitly apply the default language from config
     changeLanguage(config.languageConfig.defaultLanguage);
     
@@ -3428,7 +3324,7 @@ function hideFloatingButton() {
 function acceptAllCookies() {
     const consentData = {
         status: 'accepted',
-        gcs: 'G111', // Explicit GCS signal for all granted
+        gcs: 'G111',
         categories: {
             functional: true,
             analytics: true,
@@ -3447,30 +3343,30 @@ function acceptAllCookies() {
         updateConsentStats('accepted');
     }
     
-    // Push dataLayer event for consent acceptance with location data and GCS
-    window.dataLayer.push({
-        'event': 'cookie_consent_accepted',
-        'consent_mode': {
-            'ad_storage': 'granted',
-            'analytics_storage': 'granted',
-            'ad_user_data': 'granted',
-            'ad_personalization': 'granted',
-            'personalization_storage': 'granted',
-            'functionality_storage': 'granted',
-            'security_storage': 'granted'
-        },
-        'gcs': 'G111', // Explicit GCS signal
-        'consent_status': 'accepted',
-        'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString(),
-        'location_data': locationData
-    });
+    // Push dataLayer event for consent acceptance with location data
+window.dataLayer.push({
+    'event': 'cookie_consent_accepted',
+    'consent_mode': {
+        'ad_storage': 'granted',
+        'analytics_storage': 'granted',
+        'ad_user_data': 'granted',
+        'ad_personalization': 'granted',
+        'personalization_storage': 'granted',
+        'functionality_storage': 'granted',
+        'security_storage': 'granted'
+    },
+    'gcs': 'G111',
+    'consent_status': 'accepted',
+    'consent_categories': consentData.categories,
+    'timestamp': new Date().toISOString(),
+    'location_data': locationData
+});
 }
 
 function rejectAllCookies() {
     const consentData = {
         status: 'rejected',
-        gcs: 'G100', // Explicit GCS signal for all denied
+        gcs: 'G100',
         categories: {
             functional: false,
             analytics: false,
@@ -3489,24 +3385,24 @@ function rejectAllCookies() {
         updateConsentStats('rejected');
     }
     
-    // Push dataLayer event for consent rejection with location data and GCS
-    window.dataLayer.push({
-        'event': 'cookie_consent_rejected',
-        'consent_mode': {
-            'ad_storage': 'denied',
-            'analytics_storage': 'denied',
-            'ad_user_data': 'denied',
-            'ad_personalization': 'denied',
-            'personalization_storage': 'denied',
-            'functionality_storage': 'denied',
-            'security_storage': 'granted'
-        },
-        'gcs': 'G100', // Explicit GCS signal
-        'consent_status': 'rejected',
-        'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString(),
-        'location_data': locationData
-    });
+    // Push dataLayer event for consent rejection with location data
+ window.dataLayer.push({
+    'event': 'cookie_consent_rejected',
+    'consent_mode': {
+        'ad_storage': 'denied',
+        'analytics_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'personalization_storage': 'denied',
+        'functionality_storage': 'denied',
+        'security_storage': 'granted'
+    },
+    'gcs': 'G100',
+    'consent_status': 'rejected',
+    'consent_categories': consentData.categories,
+    'timestamp': new Date().toISOString(),
+    'location_data': locationData
+});
 }
 
 function saveCustomSettings() {
@@ -3515,13 +3411,13 @@ function saveCustomSettings() {
     
     let gcsSignal;
     if (analyticsChecked && advertisingChecked) {
-        gcsSignal = 'G111'; // Both granted
+        gcsSignal = 'G111';
     } else if (!analyticsChecked && !advertisingChecked) {
-        gcsSignal = 'G100'; // Both denied
+        gcsSignal = 'G100';
     } else if (analyticsChecked && !advertisingChecked) {
-        gcsSignal = 'G101'; // Analytics granted, ads denied
+        gcsSignal = 'G101';
     } else if (!analyticsChecked && advertisingChecked) {
-        gcsSignal = 'G110'; // Ads granted, analytics denied
+        gcsSignal = 'G110';
     }
 
     const consentData = {
@@ -3551,6 +3447,7 @@ function saveCustomSettings() {
         updateConsentStats('custom');
     }
     
+    // Push dataLayer event for custom consent settings with location data
     const consentStates = {
         'ad_storage': consentData.categories.advertising ? 'granted' : 'denied',
         'analytics_storage': consentData.categories.analytics ? 'granted' : 'denied',
@@ -3561,46 +3458,17 @@ function saveCustomSettings() {
         'security_storage': 'granted'
     };
     
-    // Fire specific events based on consent choices with GCS signals
-    if (analyticsChecked && !advertisingChecked) {
-        window.dataLayer.push({
-            'event': 'analytics_cookie_accepted',
-            'consent_mode': {
-                'analytics_storage': 'granted',
-                'ad_storage': 'denied'
-            },
-            'gcs': 'G101', // Explicit GCS signal
-            'consent_status': 'custom',
-            'consent_categories': consentData.categories,
-            'timestamp': new Date().toISOString(),
-            'location_data': locationData
-        });
-    } else if (advertisingChecked && !analyticsChecked) {
-        window.dataLayer.push({
-            'event': 'marketing_cookie_accepted',
-            'consent_mode': {
-                'ad_storage': 'granted',
-                'analytics_storage': 'denied'
-            },
-            'gcs': 'G110', // Explicit GCS signal
-            'consent_status': 'custom',
-            'consent_categories': consentData.categories,
-            'timestamp': new Date().toISOString(),
-            'location_data': locationData
-        });
-    } else {
-        // For all other cases (both accepted or both rejected)
-        window.dataLayer.push({
-            'event': 'cookie_consent_custom',
-            'consent_mode': consentStates,
-            'gcs': gcsSignal, // Explicit GCS signal
-            'consent_status': 'custom',
-            'consent_categories': consentData.categories,
-            'timestamp': new Date().toISOString(),
-            'location_data': locationData
-        });
-    }
+ window.dataLayer.push({
+    'event': 'cookie_consent_custom',
+    'consent_mode': consentStates,
+    'gcs': gcsSignal,
+    'consent_status': 'custom',
+    'consent_categories': consentData.categories,
+    'timestamp': new Date().toISOString(),
+    'location_data': locationData
+});
 }
+
 // Helper functions
 function clearNonEssentialCookies() {
     const cookies = document.cookie.split(';');
@@ -3630,7 +3498,11 @@ function clearCategoryCookies(category) {
 }
 
 function loadCookiesAccordingToConsent(consentData) {
-   if (consentData.categories.advertising) {
+    if (consentData.categories.analytics) {
+        loadAnalyticsCookies();
+    }
+    
+    if (consentData.categories.advertising) {
         loadAdvertisingCookies();
     }
     
@@ -3664,15 +3536,12 @@ function updateConsentMode(consentData) {
         } else if (consentData.categories.analytics && consentData.categories.advertising) {
             gcsSignal = 'G111'; // Both granted (same as accept all)
         } else {
-            gcsSignal = 'G100'; // Both denied (same as reject all)
+            gcsSignal = ''; // Both denied (same as reject all)
         }
     }
 
-    // Update Google consent with explicit GCS parameter
-    gtag('consent', 'update', {
-        ...consentStates,
-      
-    });
+    // Update Google consent
+    gtag('consent', 'update', consentStates);
     
     // Update Microsoft UET consent if enabled
     if (config.uetConfig.enabled) {
@@ -3682,29 +3551,29 @@ function updateConsentMode(consentData) {
         });
         
         // Push UET consent event to dataLayer with the exact requested format
-        window.dataLayer.push({
-            'event': 'uet_consent_update',
-            'uet_consent': {
-                'ad_storage': uetConsentState,
-                'status': consentData.status,
-                'src': 'update',
-                'asc': uetConsentState === 'granted' ? 'G' : 'D',
-                'timestamp': new Date().toISOString()
-            },
-            'location_data': locationData
-        });
+      window.dataLayer.push({
+    'event': 'uet_consent_update',
+    'uet_consent': {
+        'ad_storage': uetConsentState,
+        'status': consentData.status,
+        'src': 'update',
+        'asc': uetConsentState === 'granted' ? 'G' : 'D',
+        'timestamp': new Date().toISOString()
+    },
+    'location_data': locationData
+});
     }
     
-    // Push general consent update to dataLayer with GCS signal
-    window.dataLayer.push({
-        'event': 'cookie_consent_update',
-        'consent_mode': consentStates,
-        'gcs': gcsSignal,
-        'consent_status': consentData.status,
-        'consent_categories': consentData.categories,
-        'timestamp': new Date().toISOString(),
-        'location_data': locationData
-    });
+    // Push general consent update to dataLayer
+ window.dataLayer.push({
+    'event': 'cookie_consent_update',
+    'consent_mode': consentStates,
+    'gcs': gcsSignal,
+    'consent_status': consentData.status,
+    'consent_categories': consentData.categories,
+    'timestamp': new Date().toISOString(),
+    'location_data': locationData
+});
 }
 
 // Cookie management functions
@@ -3729,7 +3598,14 @@ function getCookie(name) {
     return null;
 }
 
-
+// Tracking functions
+function loadAnalyticsCookies() {
+    console.log('Loading analytics cookies');
+    if (typeof ga === 'undefined' && typeof gtag === 'function') {
+        gtag('js', new Date());
+        gtag('config', 'YOUR_GA4_MEASUREMENT_ID');
+    }
+}
 // Load analytics cookies function
 function loadAdvertisingCookies() {
     console.log('Loading advertising cookies');
@@ -3745,11 +3621,8 @@ function loadPerformanceCookies() {
 
 // Main execution flow
 document.addEventListener('DOMContentLoaded', async function() {
-      // Ensure location data is loaded first
-    if (!sessionStorage.getItem('locationData')) {
-        await fetchLocationData();
-    }  
-   
+       // Add this line first:
+    fetchLocationData(); // Start loading location data immediately
 
  // Check if domain is allowed
     if (!isDomainAllowed()) {
@@ -3767,13 +3640,6 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     // Fetch location data asynchronously
     await fetchLocationData();
-    
-      // Check geo-targeting before proceeding
-    const geoAllowed = checkGeoTargeting(locationData);
-    if (!geoAllowed) {
-        console.log('Cookie consent banner not shown - geo-targeting restriction');
-        return;
-    }
 
     // Scan and categorize existing cookies
     const detectedCookies = scanAndCategorizeCookies();
