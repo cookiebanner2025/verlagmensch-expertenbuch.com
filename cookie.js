@@ -93,36 +93,40 @@ const config = {
     uiTheme: 'default',
     
     // Banner styling
-    bannerStyle: {
-        background: '#ffffff',
-        borderRadius: '12px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-        width: '465px',
-        padding: '24px',
-        textColor: '#2c3e50',
-        linkColor: '#3498db',
-        linkHoverColor: '#1d6fa5',
-        zIndex: '9999 !important',
-    display: 'block !important',
-    opacity: '1 !important',
-    transform: 'none !important'
-        border: {
-            enabled: false,
-            width: '1px',
-            style: 'solid',
-            color: '#e0e0e0'
-        },
-        title: {
-            fontSize: '18px',
-            fontWeight: '600',
-            color: '#2c3e50'
-        },
-        description: {
-            fontSize: '14px',
-            lineHeight: '1.5',
-            color: '#7f8c8d'
-        }
+bannerStyle: {
+    background: '#ffffff',
+    borderRadius: '12px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
+    width: '465px',
+    padding: '24px',
+    textColor: '#2c3e50',
+    linkColor: '#3498db',
+    linkHoverColor: '#1d6fa5',
+    // New critical visibility properties:
+    zIndex: '2147483647', // Highest possible z-index
+    position: 'fixed',
+    bottom: '20px',
+    left: '20px',
+    display: 'block',
+    opacity: '1',
+    // Existing border configuration:
+    border: {
+        enabled: false,
+        width: '1px',
+        style: 'solid',
+        color: '#e0e0e0'
     },
+    title: {
+        fontSize: '18px',
+        fontWeight: '600',
+        color: '#2c3e50'
+    },
+    description: {
+        fontSize: '14px',
+        lineHeight: '1.5',
+        color: '#7f8c8d'
+    }
+},
     
     // Button styling
     buttonStyle: {
