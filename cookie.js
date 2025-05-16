@@ -102,6 +102,10 @@ const config = {
         textColor: '#2c3e50',
         linkColor: '#3498db',
         linkHoverColor: '#1d6fa5',
+        zIndex: '9999 !important',
+    display: 'block !important',
+    opacity: '1 !important',
+    transform: 'none !important'
         border: {
             enabled: false,
             width: '1px',
