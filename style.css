@@ -101,15 +101,15 @@
 }
 
 .main-accept-button {
-    background-color: #f4fe81 !important;
-    color: #000000 !important;
+    background-color: #223543 !important;
+    color: #e9c46b !important;
     border: 1px solid #0000000f !important;
     box-shadow: 0 2px 12px rgba(46, 204, 113, 0.3);
 }
 
 .main-accept-button:hover {
-    background-color: #f4fe81 !important;
-    color: #000000 !important;
+    background-color: #223543 !important;
+    color: #e9c46b !important;
     transform: translateY(-1px) !important;
     box-shadow: 0 4px 16px rgba(255, 255, 255, 0.4);
 }
