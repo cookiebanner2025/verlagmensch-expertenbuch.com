@@ -60,7 +60,7 @@ const config = {
     },
     
     languageConfig: {
-        defaultLanguage: 'en',
+        defaultLanguage: 'de',
         availableLanguages: [],
         showLanguageSelector: false,
         autoDetectLanguage: true
@@ -462,6 +462,41 @@ const translations = {
         dashboardTitle: "Consent Analytics Dashboard",
         seeAnalytics: "See Consent Analytics"
     },
+    de: {
+        title: "Wir schätzen Ihre Privatsphäre",
+        description: "Wir verwenden Cookies, um Ihr Surferlebnis zu verbessern, personalisierte Anzeigen oder Inhalte bereitzustellen und unseren Datenverkehr zu analysieren. Wenn Sie auf \"Alle akzeptieren\" klicken, erklären Sie sich mit der Verwendung von Cookies einverstanden.",
+        privacy: "Datenschutzrichtlinie",
+        customize: "Anpassen",
+        reject: "Alle ablehnen",
+        accept: "Alle akzeptieren",
+        essential: "Essenzielle Cookies",
+        essentialDesc: "Für Website-Funktionalität",
+        analytics: "Analytics-Cookies",
+        analyticsDesc: "Verstehen Nutzerinteraktionen",
+        performance: "Performance-Cookies",
+        performanceDesc: "Verbessern die Leistung",
+        advertising: "Werbe-Cookies",
+        advertisingDesc: "Liefern relevante Anzeigen",
+        other: "Andere Cookies",
+        otherDesc: "Nicht kategorisierte Cookies",
+        save: "Einstellungen speichern",
+        language: "Deutsch",
+        statsTitle: "Zustimmungsstatistiken",
+        statsAccepted: "Akzeptiert",
+        statsRejected: "Abgelehnt",
+        statsCustom: "Angepasst",
+        statsTotal: "Gesamt",
+        statsPercentage: "Prozentsatz",
+        statsLast1Day: "Letzter Tag",
+        statsLast7Days: "Letzten 7 Tage",
+        statsLast30Days: "Letzten 30 Tage",
+        passwordPrompt: "Passwort eingeben, um Analysen zu sehen",
+        passwordSubmit: "Einreichen",
+        passwordIncorrect: "Falsches Passwort",
+        dashboardTitle: "Zustimmungsanalyse-Dashboard",
+        seeAnalytics: "Zustimmungsanalysen anzeigen"
+    },
+
     
      // ... (keep all other language translations the same)
 };
